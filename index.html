@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Video Downloader</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        input { width: 80%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+        button { padding: 10px 20px; background-color: #007BFF; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:disabled { background-color: #ccc; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>YouTube Video Downloader</h1>
+    <input type="text" id="videoUrl" placeholder="Enter YouTube Video URL">
+    <button id="downloadBtn">Download Video</button>
+    <p id="error" class="error"></p>
+    
+    <script>
+        document.getElementById("downloadBtn").addEventListener("click", async function() {
+            const url = document.getElementById("videoUrl").value;
+            const errorElem = document.getElementById("error");
+            errorElem.textContent = "";
+
+            if (!url) {
+                errorElem.textContent = "Please enter a valid YouTube URL.";
+                return;
+            }
+
+            this.disabled = true;
+            this.textContent = "Downloading...";
+
+            try {
+                const response = await fetch("http://localhost:5000/download", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ url })
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to download video. Make sure the URL is correct.");
+                }
+
+                const blob = await response.blob();
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = "video.mp4";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                errorElem.textContent = error.message;
+            }
+
+            this.disabled = false;
+            this.textContent = "Download Video";
+        });
+    </script>
+</body>
+</html>
